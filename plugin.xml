@@ -26,8 +26,8 @@
     <description>Cordova video helper library</description>
     <license>Apache 2.0</license>
     <keywords>cordova, video, movie, helper</keywords>
-    <repo>https://git-wip-us.apache.org/repos/asf/cordova-plugin-file.git</repo>
-    <issue>https://issues.apache.org/jira/browse/CB/component/12320651</issue>
+    <repo>https://github.com/gomoob/cordova-plugin-video-helper.git</repo>
+    <issue>https://github.com/gomoob/cordova-plugin-video-helper/issues</issue>
     
     <engines>
         <engine name="cordova" version=">=3.4.0" platform="ios" />
