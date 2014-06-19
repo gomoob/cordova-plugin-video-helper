@@ -20,21 +20,13 @@
 */
 
 var argscheck = require('cordova/argscheck'),
-    FileEntry = require('org.apache.cordova.file.FileEntry'),
     exec = require("cordova/exec");
 
 var VideoHelper = function () {
     this.name = "VideoHelper";
 };
 
-/**
- * Saves a video to the default user library (such as photo/video Albums for IOS)
- *  
- * @param {DOMString} videoPath an absolute path to the video to save to the user library.
- * @param {Function} successCallback is called with the new entry
- * @param {Function} errorCallback is called with a FileError
- */
-VideoHelper.prototype.saveToUserLibrary = function (videoPath, successCallback, errorCallback) {
+VideoHelper.prototype.saveToUserLibrary = function (videoPath, success, fail) {
     
     /**
      * s : string required
@@ -42,33 +34,8 @@ VideoHelper.prototype.saveToUserLibrary = function (videoPath, successCallback, 
      */
     argscheck.checkArgs('sFF', 'VideoHelper.saveToUserLibrary', arguments);
     
-    var win = function(result) {
-        
-        if (successCallback) {
-            
-            var entry = new FileEntry;
-            
-            entry.isDirectory = false;
-            entry.isFile = true;
-            entry.name = result.name;
-            entry.fullPath = result.fullPath;
-            entry.filesystem = new FileSystem(result.filesystemName || (result.filesystem == window.PERSISTENT ? 'persistent' : 'temporary'));
-            entry.nativeURL = result.nativeURL;
-            successCallback(entry);
-            
-        }
-        
-    };
-
-    var fail = errorCallback && function(e) {
-        
-        // TODO Build specific helper error object to pass as argument to the error callback function
-        errorCallback(e);
-        
-    };
-    
-    exec(win, fail, "VideoHelper", "saveToUserLibrary", [videoPath]);
+    exec(success, fail, "VideoHelper", "saveToUserLibrary", [videoPath]);
     
 };
 
-module.exports = new ImageHelper();
+module.exports = new VideoHelper();
