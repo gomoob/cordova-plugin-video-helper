@@ -36,6 +36,7 @@ The `VideoHelper` object provides a set of utility function to manipulate videos
 ## Methods
 
 - __saveToUserLibrary__: saves a video to the default user media library.
+- __cropSquareVideo__: transforms a video in square dimensions and rotate it if necessary.
 
 ## saveToUserLibrary
 
@@ -60,3 +61,28 @@ __Parameters__:
     }
 
     window.VideoHelper.saveToUserLibrary(videoPath, win, fail);
+    
+
+## cropSquareVideo
+
+__Parameters__:
+
+- __videoPath__: the full system path to the video to crop. _(string)_
+
+- __successCallback__: A callback that is passed a `Metadata` object. _(Function)_
+
+- __errorCallback__: A callback that executes if an error occurs croping the video. _(Function)_
+
+### Example
+
+    // !! Assumes variable videoPath contains a valid system path to a video file on the device
+
+    var win = function (fileEntry) {
+        console.log(fileEntry);
+    }
+
+    var fail = function (error) {
+        console.error("An error has occurred !");
+    }
+
+    window.VideoHelper.cropSquareVideo(videoPath, win, fail);

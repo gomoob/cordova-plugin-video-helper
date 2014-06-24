@@ -38,4 +38,16 @@ VideoHelper.prototype.saveToUserLibrary = function (videoPath, success, fail) {
     
 };
 
+VideoHelper.prototype.cropSquareVideo = function (videoPath, success, fail) {
+    
+    /**
+     * s : string required
+     * F : function optional
+     */
+    argscheck.checkArgs('sFF', 'VideoHelper.cropSquareVideo', arguments);
+    
+    exec(success, fail, "VideoHelper", "cropSquareVideo", [videoPath]);
+    
+};
+
 module.exports = new VideoHelper();
