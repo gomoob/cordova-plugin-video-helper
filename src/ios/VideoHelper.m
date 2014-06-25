@@ -133,10 +133,11 @@
         [[NSFileManager defaultManager] removeItemAtPath:exportPath error:nil];
     }
     
-    AVAssetExportSession * assetExport = [[AVAssetExportSession alloc] initWithAsset:composition presetName:AVAssetExportPresetLowQuality];
+    AVAssetExportSession * assetExport = [[AVAssetExportSession alloc] initWithAsset:composition presetName:AVAssetExportPresetMediumQuality];
     assetExport.outputFileType = AVFileTypeQuickTimeMovie;
     assetExport.outputURL = exportUrl;
     assetExport.videoComposition = videoComposition;
+    assetExport.shouldOptimizeForNetworkUse = YES;
     
     // Trigger export
     [assetExport exportAsynchronouslyWithCompletionHandler:
