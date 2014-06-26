@@ -21,7 +21,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="com.gomoob.cordova.video-helper" 
-        version="0.1.3">
+        version="0.1.4">
     <name>Cordova Video Helper Plugin</name>
     <author>SARL GoMoob (http://www.gomoob.com)</author>
     <description>Cordova video helper library</description>
