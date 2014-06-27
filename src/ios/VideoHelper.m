@@ -9,22 +9,40 @@
 #import <AVFoundation/AVAssetExportSession.h>
 
 @implementation VideoHelper
+
 - (void)saveToUserLibrary:(CDVInvokedUrlCommand *)command
 {
+
     CDVPluginResult* result = nil;
-    NSString* argPath = [command.arguments objectAtIndex:0];
     
-    /* don't need, it should automatically get saved*/
-    NSLog(@"can save %@: %d ?", argPath, UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(argPath));
-    if (&UIVideoAtPathIsCompatibleWithSavedPhotosAlbum != NULL && UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(argPath) == YES) {
+    NSString* videoPath = [command argumentAtIndex:0 withDefault:nil];
+    
+    // Checks if path is given in parameters
+    if (videoPath == nil) {
+        NSLog(@"Video Helper - Save to user library failed, file path is required !");
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Video Helper - Save to user library failed, file path is required !"];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+    }
+    
+    // Checks if movie url is an existing file
+    if ([[NSFileManager defaultManager] fileExistsAtPath:videoPath] == FALSE){
+        NSLog(@"Video Helper - Save to user library failed, video file does not exist at the indicated path %@ !", videoPath);
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Video Helper - Save to user library failed, video file does not exist at the indicated path !"];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+    }
+    
+    // Checks file compatibility with photos album
+    if (&UIVideoAtPathIsCompatibleWithSavedPhotosAlbum != NULL && UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(videoPath) == YES) {
         NSLog(@"try to save movie");
-        UISaveVideoAtPathToSavedPhotosAlbum(argPath, nil, nil, nil);
+        UISaveVideoAtPathToSavedPhotosAlbum(videoPath, nil, nil, nil);
         NSLog(@"finished saving movie");
         
-        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:argPath];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:videoPath];
         
     }else{
+        
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error when saving video"];
+        
     }
     
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -33,10 +51,25 @@
 
 - (void)cropSquareVideo:(CDVInvokedUrlCommand *)command
 {
-    NSString* argPath = [command.arguments objectAtIndex:0];
+    
+    NSString* videoPath = [command argumentAtIndex:0 withDefault:nil];
+    
+    // Checks if video path is given in parameters
+    if (videoPath == nil) {
+        NSLog(@"Video Helper - Crop square video failed, video file path is required !");
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Video Helper - Crop square video failed, video file path is required !"];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+    }
+    
+    // Checks if movie url is an existing file
+    if ([[NSFileManager defaultManager] fileExistsAtPath:videoPath] == FALSE){
+        NSLog(@"Video Helper - Crop square video failed, video file does not exist at indicated path %@ !", videoPath);
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Video Helper - Crop square video failed, video file does not exist at indicated path !"];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+    }
     
     // Get Movie url
-    NSURL *movieURL = [NSURL fileURLWithPath:argPath];
+    NSURL *movieURL = [NSURL fileURLWithPath:videoPath];
     
     // Video asset
     AVURLAsset * videoAsset = [[AVURLAsset alloc]initWithURL:movieURL options:nil];
@@ -48,34 +81,33 @@
     // 1 - Create AVMutableComposition object. This object will hold your AVMutableCompositionTrack instances.
     AVMutableComposition *composition = [[AVMutableComposition alloc] init];
     
+    // Video composition
     AVMutableCompositionTrack *compositionVideoTrack = [composition addMutableTrackWithMediaType:AVMediaTypeVideo preferredTrackID:kCMPersistentTrackID_Invalid];
     [compositionVideoTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, videoAsset.duration) ofTrack:sourceVideoTrack atTime:kCMTimeZero error:nil];
-    //[compositionVideoTrack setPreferredTransform:sourceVideoTrack.preferredTransform];
     
+    // Audio composition
     AVMutableCompositionTrack *compositionAudioTrack = [composition addMutableTrackWithMediaType:AVMediaTypeAudio preferredTrackID:kCMPersistentTrackID_Invalid];
     [compositionAudioTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, videoAsset.duration) ofTrack:sourceAudioTrack atTime:kCMTimeZero error:nil];
     
+    // Prepares video compostion instructions
     AVMutableVideoCompositionInstruction *instruction = [AVMutableVideoCompositionInstruction videoCompositionInstruction];
     AVMutableVideoCompositionLayerInstruction *layerInstruction = [AVMutableVideoCompositionLayerInstruction videoCompositionLayerInstructionWithAssetTrack:compositionVideoTrack];
     
+    // Defines the size of the square video to crop
     CGSize videoSize = sourceVideoTrack.naturalSize;
     CGFloat cropSize;
-    //CGRect cropRect;
     
     if(videoSize.width < videoSize.height){
         
         cropSize = videoSize.width;
-        //cropRect = CGRectMake(0, (videoSize.height - videoSize.width)/2, videoSize.width, videoSize.width);
         
     }else{
         
         cropSize = videoSize.height;
-        //cropRect = CGRectMake((videoSize.width - videoSize.height)/2, 0, videoSize.height, videoSize.height);
         
     }
     
-    //[layerInstruction setCropRectangle:cropRect atTime:kCMTimeZero];
-    
+    // Configures transformations to rotate the video to the right side
     CGAffineTransform t = sourceVideoTrack.preferredTransform;
     CGAffineTransform rotationTransform;
     CGAffineTransform translationTransform;
@@ -114,7 +146,7 @@
         
     }
     
-    
+    // Defines video composition for the export
     AVMutableVideoComposition *videoComposition = [AVMutableVideoComposition videoComposition];
     videoComposition.frameDuration = CMTimeMake(1,30);
     videoComposition.renderScale = 1.0;
@@ -128,9 +160,10 @@
     NSString *exportPath = [NSTemporaryDirectory() stringByAppendingPathComponent:videoName];
     NSURL * exportUrl = [NSURL fileURLWithPath:exportPath];
     
-    if ([[NSFileManager defaultManager] fileExistsAtPath:exportPath])
-    {
+    if ([[NSFileManager defaultManager] fileExistsAtPath:exportPath]){
+        
         [[NSFileManager defaultManager] removeItemAtPath:exportPath error:nil];
+        
     }
     
     AVAssetExportSession * assetExport = [[AVAssetExportSession alloc] initWithAsset:composition presetName:AVAssetExportPresetMediumQuality];
@@ -144,17 +177,18 @@
      ^(void ) {
          
          CDVPluginResult *result;
-         
-         // create MediaFile object
-         NSDictionary* fileDict = [self getMediaDictionaryFromPath:exportPath ofType:nil];
-         NSArray* fileArray = [NSArray arrayWithObject:fileDict];
+         NSDictionary* fileDict;
+         NSArray* fileArray;
          
          switch (assetExport.status)
          {
              case AVAssetExportSessionStatusCompleted:
                  
                  NSLog(@"Export Complete");
-                 //UISaveVideoAtPathToSavedPhotosAlbum(exportPath, nil, nil, nil);
+                 
+                 // create MediaFile object
+                 fileDict = [self getMediaDictionaryFromPath:exportPath ofType:nil];
+                 fileArray = [NSArray arrayWithObject:fileDict];
                  result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:fileArray];
                  [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
                  
