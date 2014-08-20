@@ -74,20 +74,35 @@
     // Video asset
     AVURLAsset * videoAsset = [[AVURLAsset alloc]initWithURL:movieURL options:nil];
     
-    // Video track assets
-    AVAssetTrack *sourceVideoTrack = [[videoAsset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0];
-    AVAssetTrack *sourceAudioTrack = [[videoAsset tracksWithMediaType:AVMediaTypeAudio] objectAtIndex:0];
+    // Checks is video and audio tracks exist
+    BOOL hasSourceVideoTracks = ([[videoAsset tracksWithMediaType:AVMediaTypeVideo] count] > 0);
+    BOOL hasSourceAudioTracks = ([[videoAsset tracksWithMediaType:AVMediaTypeAudio] count] > 0);
+    
+    // If no tracks found, return with error status
+    if (hasSourceVideoTracks == FALSE) {
+
+        NSLog(@"Export Failed, no video track found !");
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Export Failed, no video track found !"];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        
+    }
     
     // 1 - Create AVMutableComposition object. This object will hold your AVMutableCompositionTrack instances.
     AVMutableComposition *composition = [[AVMutableComposition alloc] init];
     
-    // Video composition
+    // Builds video composition
+    AVAssetTrack *sourceVideoTrack = [[videoAsset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0];
     AVMutableCompositionTrack *compositionVideoTrack = [composition addMutableTrackWithMediaType:AVMediaTypeVideo preferredTrackID:kCMPersistentTrackID_Invalid];
     [compositionVideoTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, videoAsset.duration) ofTrack:sourceVideoTrack atTime:kCMTimeZero error:nil];
     
-    // Audio composition
-    AVMutableCompositionTrack *compositionAudioTrack = [composition addMutableTrackWithMediaType:AVMediaTypeAudio preferredTrackID:kCMPersistentTrackID_Invalid];
-    [compositionAudioTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, videoAsset.duration) ofTrack:sourceAudioTrack atTime:kCMTimeZero error:nil];
+    // Builds audio composition if audio track exists
+    if(hasSourceAudioTracks) {
+
+        AVAssetTrack *sourceAudioTrack = [[videoAsset tracksWithMediaType:AVMediaTypeAudio] objectAtIndex:0];
+        AVMutableCompositionTrack *compositionAudioTrack = [composition addMutableTrackWithMediaType:AVMediaTypeAudio preferredTrackID:kCMPersistentTrackID_Invalid];
+        [compositionAudioTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, videoAsset.duration) ofTrack:sourceAudioTrack atTime:kCMTimeZero error:nil];
+        
+    }
     
     // Prepares video compostion instructions
     AVMutableVideoCompositionInstruction *instruction = [AVMutableVideoCompositionInstruction videoCompositionInstruction];
