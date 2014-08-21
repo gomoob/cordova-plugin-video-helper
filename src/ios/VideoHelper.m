@@ -7,6 +7,7 @@
 #import <AVFoundation/AVVideoComposition.h>
 #import <AVFoundation/AVCompositionTrack.h>
 #import <AVFoundation/AVAssetExportSession.h>
+#import <AVFoundation/AVAudioSession.h>
 
 @implementation VideoHelper
 
@@ -268,6 +269,27 @@
     [fileDict setObject:msDate forKey:@"lastModifiedDate"];
     
     return fileDict;
+}
+
+- (void)checkMicrophoneAccessPermission:(CDVInvokedUrlCommand *)command
+{
+    [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
+        
+        if (granted) {
+            
+            NSLog(@"Record audio permission granted !");
+            CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:granted];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+            
+        }
+        else {
+            
+            NSLog(@"Record audio permission not granted !");
+            CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:granted];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+            
+        }
+    }];
 }
 
 @end

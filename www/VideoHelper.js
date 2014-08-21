@@ -50,4 +50,15 @@ VideoHelper.prototype.cropSquareVideo = function (videoPath, success, fail) {
     
 };
 
+VideoHelper.prototype.checkMicrophoneAccessPermission = function (success, fail) {
+    
+    /**
+     * F : function optional
+     */
+    argscheck.checkArgs('FF', 'VideoHelper.checkMicrophoneAccessPermission', arguments);
+    
+    exec(success, fail, "VideoHelper", "checkMicrophoneAccessPermission", []);
+    
+};
+
 module.exports = new VideoHelper();

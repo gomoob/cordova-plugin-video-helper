@@ -86,3 +86,24 @@ __Parameters__:
     }
 
     window.VideoHelper.cropSquareVideo(videoPath, win, fail);
+    
+## checkMicrophoneAccessPermission
+
+__Parameters__:
+
+- __successCallback__: A callback that is passed a `boolean` object. _(Function)_
+
+- __errorCallback__: A callback that executes if an error occurs checking the microphone access permission. _(Function)_
+
+### Example
+
+    var win = function (permissionGranted) {
+        console.log('Is permission granted : ' + permissionGranted);
+    }
+
+    var fail = function (error) {
+        console.error("An error has occurred !");
+    }
+
+    window.VideoHelper.checkMicrophoneAccessPermission(win, fail);
+
